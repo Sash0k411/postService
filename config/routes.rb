@@ -11,7 +11,7 @@ Rails.application.routes.draw do
       get :export
     end
   end
-  resources :users, only: [:index, :edit, :update, :destroy] do
+  resources :users, only: [ :index, :edit, :update, :destroy ] do
     member do
       patch :make_admin
     end

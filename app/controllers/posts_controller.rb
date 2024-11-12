@@ -96,9 +96,9 @@ class PostsController < ApplicationController
   def filter_posts_for_user
     @posts = if current_user.admin?
                @posts.pending_review
-             else
+    else
                @posts.where(user: current_user)
-             end
+    end
   end
 
   def apply_filters
