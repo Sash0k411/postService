@@ -1,0 +1,56 @@
+<% if @post.persisted? %>
+  <%= form_with(model: @post, local: true, html: { class: "needs-validation", novalidate: true }) do |form| %>
+    <% if @post.errors.any? %>
+      <div id="error_explanation" class="alert alert-danger">
+        <h4><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h4>
+        <ul>
+          <% @post.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="mb-3">
+      <%= form.label :content, class: "form-label" %>
+      <%= form.text_area :content, class: "form-control", rows: 5, placeholder: "Enter the content of your post here" %>
+    </div>
+
+    <div class="mb-3">
+      <%= form.label :region_id, "Region", class: "form-label" %>
+      <%= form.collection_select :region_id, Region.all, :id, :name, { prompt: "Select a Region" }, { class: "form-select" } %>
+    </div>
+
+    <div class="text-center">
+      <%= form.submit "Update Post", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+<% else %>
+  <h1 class="my-4">Create New Post</h1>
+  <%= form_with(model: @post, local: true, html: { class: "needs-validation", novalidate: true }) do |form| %>
+    <% if @post.errors.any? %>
+      <div id="error_explanation" class="alert alert-danger">
+        <h4><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h4>
+        <ul>
+          <% @post.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="mb-3">
+      <%= form.label :content, class: "form-label" %>
+      <%= form.text_area :content, class: "form-control", rows: 5, placeholder: "Enter the content of your post here" %>
+    </div>
+
+    <div class="mb-3">
+      <%= form.label :region_id, "Region", class: "form-label" %>
+      <%= form.collection_select :region_id, Region.all, :id, :name, { prompt: "Select a Region" }, { class: "form-select" } %>
+    </div>
+
+    <div class="text-center">
+      <%= form.submit "Create Post", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+<% end %>
