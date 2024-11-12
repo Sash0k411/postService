@@ -31,6 +31,10 @@ class PostPolicy < ApplicationPolicy
     record.draft? && is_owner?
   end
 
+  def export?
+    user.admin?
+  end
+
   def send_for_review?
     is_owner?
   end

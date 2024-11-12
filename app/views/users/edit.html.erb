@@ -1,0 +1,22 @@
+<h1>Edit User</h1>
+
+<%= form_with model: @user, local: true do |form| %>
+  <div class="mb-3">
+    <%= form.label :email %>
+    <%= form.email_field :email, class: "form-control", readonly: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :full_name %>
+    <%= form.text_field :full_name, class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :role %>
+    <%= form.select :role, User.roles.keys.map { |r| [r.capitalize, r] }, class: "form-control" %>
+  </div>
+
+  <%= form.submit "Update User", class: "btn btn-primary" %>
+<% end %>
+
+<%= link_to "Back to Users", users_path, class: "btn btn-secondary mt-3" %>

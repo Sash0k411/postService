@@ -1,0 +1,18 @@
+wb = xlsx_package.workbook
+wb.add_worksheet(name: "Posts Report") do |sheet|
+  sheet.add_row [ "Region", "Post Text", "Author", "Images/Files Links", "Approved At" ]
+
+  @posts.each do |post|
+    links = []
+    post.images.each { |image| links << url_for(image) } if post.images.attached?
+    post.files.each { |file| links << url_for(file) } if post.files.attached?
+
+    sheet.add_row [
+      post.region_id,
+      post.content,
+      post.user.full_name,
+      links.join(", "),
+      post.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+    ]
+  end
+end

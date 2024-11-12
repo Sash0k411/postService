@@ -5,19 +5,12 @@ class PostsController < ApplicationController
   after_action :verify_policy_scoped, only: :index
 
   def index
-    if current_user.admin?
-      @posts = policy_scope(Post).pending_review
-    else
-      @posts = policy_scope(Post).where(user: current_user)
-    end
-  end
-
-  def edit
-    authorize @post
+    @posts = policy_scope(Post)
+    filter_posts_for_user
+    apply_filters
   end
 
   def show
-    @post = Post.find(params[:id])
     authorize @post
   end
 
@@ -28,8 +21,9 @@ class PostsController < ApplicationController
 
   def create
     @post = current_user.posts.build(post_params)
-    @post.status = :draft
+    @post.status = current_user.admin? ? :approved : :draft
     authorize @post
+
     if @post.save
       redirect_to posts_path, notice: "Post created successfully."
     else
@@ -37,9 +31,13 @@ class PostsController < ApplicationController
     end
   end
 
+  def edit
+    authorize @post
+  end
 
   def update
     authorize @post
+
     if @post.update(post_params)
       redirect_to posts_path, notice: "Post updated successfully."
     else
@@ -47,7 +45,6 @@ class PostsController < ApplicationController
       render :edit
     end
   end
-
 
   def destroy
     authorize @post
@@ -57,22 +54,32 @@ class PostsController < ApplicationController
 
   def approve
     authorize @post
-    @post.update(status: :approved)
-    redirect_to posts_path, notice: "Post approved."
+    ApprovePostJob.perform_later(@post.id)
+    redirect_to posts_path, notice: "Post approval initiated."
   end
 
   def reject
     authorize @post
-    @post.update(status: :rejected)
-    redirect_to posts_path, alert: "Post rejected."
+    RejectPostJob.perform_later(@post.id)
+    redirect_to posts_path, alert: "Post rejection initiated."
   end
 
   def send_for_review
     authorize @post
-    if @post.update(status: :pending_review)
-      redirect_to posts_path, notice: "Post sent for review."
-    else
-      redirect_to posts_path, alert: "Failed to send post for review."
+    SendForReviewJob.perform_later(@post.id)
+    redirect_to posts_path, notice: "Post sent for review."
+  end
+
+  def export
+    authorize Post
+    @posts = Post.by_region(params[:region_id])
+                 .by_author(params[:author_id])
+                 .by_date_range(params[:start_date], params[:end_date])
+
+    respond_to do |format|
+      format.xlsx do
+        response.headers["Content-Disposition"] = "attachment; filename=Posts_Report_#{Date.today}.xlsx"
+      end
     end
   end
 
@@ -83,6 +90,20 @@ class PostsController < ApplicationController
   end
 
   def post_params
-    params.require(:post).permit(:content, :region_id, attachments: [])
+    params.require(:post).permit(:content, :region_id, images: [], files: [])
+  end
+
+  def filter_posts_for_user
+    @posts = if current_user.admin?
+               @posts.pending_review
+             else
+               @posts.where(user: current_user)
+             end
+  end
+
+  def apply_filters
+    @posts = @posts.by_region(params[:region_id])
+                   .by_author(params[:author_id])
+                   .by_date_range(params[:start_date], params[:end_date])
   end
 end

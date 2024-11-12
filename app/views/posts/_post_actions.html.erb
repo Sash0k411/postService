@@ -1,0 +1,14 @@
+<% if is_admin %>
+  <div class="d-flex gap-2">
+    <%= button_to 'Approve', approve_post_path(post), method: :patch, class: "btn btn-success btn-sm" %>
+    <%= button_to 'Reject', reject_post_path(post), method: :patch, class: "btn btn-danger btn-sm" %>
+  </div>
+<% else %>
+  <% if post.draft? %>
+    <div class="d-flex justify-content-start gap-2">
+      <%= link_to "Edit", edit_post_path(post), class: "btn btn-secondary btn-sm" %>
+      <%= button_to "Delete", post_path(post), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" %>
+      <%= button_to "Send", send_for_review_post_path(post), method: :patch, class: "btn btn-primary btn-sm", data: { confirm: "Are you sure you want to send this post for review?" } %>
+    </div>
+  <% end %>
+<% end %>

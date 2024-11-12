@@ -1,56 +1,72 @@
 <% if @post.persisted? %>
-  <%= form_with(model: @post, local: true, html: { class: "needs-validation", novalidate: true }) do |form| %>
-    <% if @post.errors.any? %>
-      <div id="error_explanation" class="alert alert-danger">
-        <h4><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h4>
-        <ul>
-          <% @post.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
-
-    <div class="mb-3">
-      <%= form.label :content, class: "form-label" %>
-      <%= form.text_area :content, class: "form-control", rows: 5, placeholder: "Enter the content of your post here" %>
-    </div>
-
-    <div class="mb-3">
-      <%= form.label :region_id, "Region", class: "form-label" %>
-      <%= form.collection_select :region_id, Region.all, :id, :name, { prompt: "Select a Region" }, { class: "form-select" } %>
-    </div>
-
-    <div class="text-center">
-      <%= form.submit "Update Post", class: "btn btn-primary" %>
-    </div>
-  <% end %>
+  <h1 class="my-4">Edit Post</h1>
 <% else %>
   <h1 class="my-4">Create New Post</h1>
-  <%= form_with(model: @post, local: true, html: { class: "needs-validation", novalidate: true }) do |form| %>
-    <% if @post.errors.any? %>
-      <div id="error_explanation" class="alert alert-danger">
-        <h4><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h4>
-        <ul>
-          <% @post.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
+<% end %>
 
-    <div class="mb-3">
-      <%= form.label :content, class: "form-label" %>
-      <%= form.text_area :content, class: "form-control", rows: 5, placeholder: "Enter the content of your post here" %>
+<%= form_with(model: @post, local: true, html: { class: "needs-validation", novalidate: true, multipart: true }) do |form| %>
+  <% if @post.errors.any? %>
+    <div id="error_explanation" class="alert alert-danger">
+      <h4><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h4>
+      <ul>
+        <% @post.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
     </div>
+  <% end %>
 
+  <div class="mb-3">
+    <%= form.label :content, class: "form-label" %>
+    <%= form.text_area :content, class: "form-control", rows: 5, placeholder: "Enter the content of your post here" %>
+  </div>
+
+  <% if current_user.admin? %>
     <div class="mb-3">
       <%= form.label :region_id, "Region", class: "form-label" %>
       <%= form.collection_select :region_id, Region.all, :id, :name, { prompt: "Select a Region" }, { class: "form-select" } %>
     </div>
+  <% else %>
+    <%= form.hidden_field :region_id, value: current_user.region_id %>  <!-- Скрытое поле для региона -->
+  <% end %>
 
-    <div class="text-center">
-      <%= form.submit "Create Post", class: "btn btn-primary" %>
+  <% if @post.persisted? && (@post.images.attached? || @post.files.attached?) %>
+    <div class="mb-3">
+      <h5>Existing Attachments:</h5>
+
+      <% if @post.images.attached? %>
+        <h6>Images:</h6>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <% @post.images.each do |image| %>
+            <%= image_tag url_for(image), class: "img-thumbnail", width: 100 %>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% if @post.files.attached? %>
+        <h6>Files:</h6>
+        <ul class="list-unstyled">
+          <% @post.files.each do |file| %>
+            <li>
+              <%= link_to file.filename.to_s, url_for(file), target: "_blank" %>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
     </div>
   <% end %>
+
+  <div class="mb-3">
+    <%= form.label :images, "Upload Images", class: "form-label" %>
+    <%= form.file_field :images, multiple: true, accept: "image/*", class: "form-control" %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :files, "Upload Files", class: "form-label" %>
+    <%= form.file_field :files, multiple: true, class: "form-control" %>
+  </div>
+
+  <div class="text-center">
+    <%= form.submit @post.persisted? ? "Update Post" : "Create Post", class: "btn btn-primary" %>
+  </div>
 <% end %>
